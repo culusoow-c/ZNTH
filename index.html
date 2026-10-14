@@ -744,23 +744,37 @@
                             <div class="flex items-center justify-between mb-4">
                                 <div>
                                     <p class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">CALENDAR</p>
-                                    <h4 class="font-bold text-slate-900">August 2026</h4>
+                                    <h4 id="cal-title" class="font-bold text-slate-900"></h4>
                                 </div>
                                 <div class="flex items-center gap-2 text-xs text-slate-400">
-                                    <button class="hover:text-slate-800 p-1"><i class="fa-solid fa-chevron-left"></i></button>
-                                    <button class="hover:text-slate-800 p-1"><i class="fa-solid fa-chevron-right"></i></button>
+                                    <button id="cal-prev" class="hover:text-slate-800 p-1"><i class="fa-solid fa-chevron-left"></i></button>
+                                    <button id="cal-next" class="hover:text-slate-800 p-1"><i class="fa-solid fa-chevron-right"></i></button>
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-7 text-center text-[11px] font-semibold text-slate-400 mb-2">
                                 <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
                             </div>
-                            <div class="grid grid-cols-7 text-center text-xs gap-y-2 font-medium text-slate-700">
-                                <span class="text-slate-300">28</span><span class="text-slate-300">29</span><span class="text-slate-300">30</span><span class="text-slate-300">31</span>
-                                <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span>
-                                <span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span>
-                                <span class="w-6 h-6 rounded-full bg-pupil-600 text-white flex items-center justify-center mx-auto font-bold shadow-sm">15</span><span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span>
-                            </div>
+                            <div id="cal-grid" class="grid grid-cols-7 text-center text-xs gap-y-2 font-medium text-slate-700"></div>
+<script>
+(function(){
+var M=["January","February","March","April","May","June","July","August","September","October","November","December"];
+var now=new Date(),y=now.getFullYear(),m=now.getMonth();
+function render(){
+var t=new Date();
+document.getElementById("cal-title").textContent=M[m]+" "+y;
+var first=new Date(y,m,1).getDay(),dim=new Date(y,m+1,0).getDate(),prev=new Date(y,m,0).getDate(),h="";
+for(var i=first-1;i>=0;i--)h+='<span class="text-slate-300">'+(prev-i)+'</span>';
+for(var d=1;d<=dim;d++){
+if(d===t.getDate()&&m===t.getMonth()&&y===t.getFullYear())h+='<span class="w-6 h-6 rounded-full bg-pupil-600 text-white flex items-center justify-center mx-auto font-bold shadow-sm">'+d+'</span>';
+else h+="<span>"+d+"</span>";}
+var rem=(7-((first+dim)%7))%7;
+for(var n=1;n<=rem;n++)h+='<span class="text-slate-300">'+n+'</span>';
+document.getElementById("cal-grid").innerHTML=h;}
+document.getElementById("cal-prev").onclick=function(){m--;if(m<0){m=11;y--;}render();};
+document.getElementById("cal-next").onclick=function(){m++;if(m>11){m=0;y++;}render();};
+render();})();
+</script>
                         </div>
 
                     </div>
