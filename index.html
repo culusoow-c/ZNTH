@@ -4025,6 +4025,10 @@ render();})();
             if (valid.length === 0) return null;
             valid.sort((a, b) => a.ms - b.ms || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
             const base = valid[0];
+            // FIX (self-heal): if the only snapshot is empty there is no legacy data
+            // that could be double counted, so a late cutover would only HIDE real
+            // Supabase sessions. Use T = 0 in that case.
+            if (valid.length === 1 && !snapshotHasData(base.snap)) base.ms = 0;
             const cutoverIso = new Date(base.ms).toISOString();
             const out = emptyLegacyAnalyticsSnapshot(cutoverIso);
             out.history = JSON.parse(JSON.stringify(base.snap.history));
@@ -4081,8 +4085,8 @@ render();})();
             const pending = getPendingLocalAnalyticsSnapshot(userId);
             if (pending && !rows.some(r => r.id === pending.id)) rows.push(pending);
             const combined = combineLegacySnapshotRows(rows) || {
-                cutoverMs: Date.now(),
-                snapshot: emptyLegacyAnalyticsSnapshot(new Date().toISOString())
+                cutoverMs: 0, // FIX: no legacy data => count every Supabase session
+                snapshot: emptyLegacyAnalyticsSnapshot(new Date(0).toISOString())
             };
             legacyAnalytics = combined.snapshot;
             derivedAnalytics = createDerivedAnalyticsStore(userId, combined.cutoverMs);
@@ -4140,7 +4144,7 @@ render();})();
 
                 if (rows.length === 0) {
                     // First row for this user: keep the provisional T already in use.
-                    const ms = (derivedAnalytics && derivedAnalytics.userId === userId && derivedAnalytics.cutoverMs) || Date.now();
+                    const ms = 0; // FIX: nothing legacy to protect, so never hide existing sessions
                     const iso = new Date(ms).toISOString();
                     const row = { id: generateUUID(), cutover_at: iso, snapshot: emptyLegacyAnalyticsSnapshot(iso) };
                     const ins = await supabaseClient.from('analytics_legacy_snapshots').insert({ id: row.id, user_id: userId, cutover_at: row.cutover_at, snapshot: row.snapshot });
